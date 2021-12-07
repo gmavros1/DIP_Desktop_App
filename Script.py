@@ -1,5 +1,5 @@
-import numpy
 import numpy as np
+import matplotlib.pyplot as plt
 import cv2
 
 
@@ -20,15 +20,15 @@ def myConv2(A, B, param):
     imageWidth = len(A[0])
     kernelHeight = len(B)
     kernelWidth = len(B[0])
-    paddingHeight = (kernelHeight // 2) + 1
-    paddingWidth = (kernelWidth // 2) + 1
+    paddingHeight = (kernelHeight // 2)
+    paddingWidth = (kernelWidth // 2)
 
     # padding for convolution
-    paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=numpy.int8)
+    paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=np.int8)
     im = 0
-    for i in range(paddingHeight, imageHeight):
+    for i in range(paddingHeight, imageHeight + 1):
         jm = 0
-        for j in range(paddingWidth, imageWidth):
+        for j in range(paddingWidth, imageWidth + 1):
             paddedImage[i][j] = A[im][jm]
             jm += 1
         im += 1
@@ -39,11 +39,10 @@ def myConv2(A, B, param):
 
     # flip kernel
     for i in range(paddingHeight):
-        for j in range(paddingWidth):
-            B[i][j], B[paddingHeight - i - 1][paddingWidth - j - 1] = B[paddingHeight - i - 1][paddingWidth - j - 1], \
-                                                                      B[i][j]
+        for j in range(paddingWidth + 1):
+            B[i][j], B[paddingHeight - i + 1][paddingWidth - j + 1] = B[paddingHeight - i + 1][paddingWidth - j + 1], B[i][j]
 
-    out = np.zeros((outputHeight, outputWidth), dtype=numpy.int8)
+    out = np.zeros((outputHeight, outputWidth), dtype=np.int8)
 
     for k in range(outputHeight):
         for l in range(outputWidth):
@@ -64,17 +63,26 @@ def myConv2(A, B, param):
         return out
 
 
-matrix = [[3, 23, 6, 6, 23, 87, 33, 54, 1, 8],
-          [32, 67, 3, 65, 7, 81, 87, 52, 79, 23],
-          [1, 23, 6, 6, 22, 87, 365, 54, 2, 8],
-          [3, 23, 6, 6, 23, 87, 33, 54, 1, 8],
-          [3, 23, 6, 6, 23, 87, 33, 54, 1, 8],
-          [86, 12, 57, 112, 34, 25, 56, 12, 23, 56],
-          [5, 4, 43, 798, 2, 8, 2, 9, 6, 2],
+matrix = [[3, 23, 255, 6, 23, 87, 33, 54, 1, 8],
+          [32, 67, 255, 65, 7, 81, 87, 52, 79, 23],
+          [1, 23, 255, 6, 22, 87, 200, 54, 2, 8],
+          [31, 23, 255, 255, 23, 87, 33, 54, 1, 8],
+          [100, 23, 255, 6, 23, 87, 33, 54, 1, 8],
+          [150, 12, 57, 112, 34, 25, 56, 12, 23, 56],
+          [5, 4, 43, 255, 255, 255, 255, 255, 6, 2],
           [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]]
 
 kernel = [[-1, 0, 1],
           [-1, 0, 1],
           [-1, 0, 1]]
 
-print(myConv2(matrix, kernel, 'pad'))
+out = myConv2(matrix, kernel, 'pad')
+
+plt.subplot(3, 1, 1)
+plt.imshow(matrix, cmap='gray')
+plt.subplot(3, 1, 2)
+plt.imshow(kernel, cmap='gray')
+plt.subplot(3, 1, 3)
+plt.imshow(out, cmap='gray')
+plt.show()
+
