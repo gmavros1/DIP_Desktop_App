@@ -8,15 +8,13 @@ def sizeAfterConv(height_width, kernelHeight_Width, padTop, padBot, stride):
     return ((height_width + padTop + padBot - kernelHeight_Width) // stride) + 1
 
 
-'''
-A for image
-B for kernel
-param --> same : output same size as input
-param --> pad : output size is padded
-'''
-
-
 def myConv2(A, B, param):
+    """
+    A for image
+    B for kernel
+    param --> same : output same size as input
+    param --> pad : output size is padded
+    """
     imageHeight = len(A)
     imageWidth = len(A[0])
     kernelHeight = len(B)
@@ -64,6 +62,11 @@ def myConv2(A, B, param):
     else:
         return out2D
 
+
+def myImNoise(A, param):
+    # add noise according to the parameters
+    # param must be at least 'gaussian' and 'saltandpepper'
+    print('Hello')
 
 matrix = np.array([[3, 23, 255, 6, 23, 87, 33, 54, 1, 8],
                    [32, 67, 255, 65, 7, 81, 87, 52, 79, 23],
