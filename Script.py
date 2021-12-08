@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
@@ -63,38 +65,63 @@ def myConv2(A, B, param):
         return out2D
 
 
-def myImNoise(A, param):
-    # add noise according to the parameters
-    # param must be at least 'gaussian' and 'saltandpepper'
-    print('Hello')
+def saltAndPaper(A):
+    for i in range(len(A)):
+        for j in range(len(A[0])):
+            if random.uniform(0.0, 1.0) < 0.5:  # random probability
+                if random.uniform(0.0, 1.0) < 0.5:
+                    A[i][j] = 0
+                else:
+                    A[i][j] = 254
 
-matrix = np.array([[3, 23, 255, 6, 23, 87, 33, 54, 1, 8],
+    return A
+
+
+def myImNoise(A, param):
+
+    return saltAndPaper(A)
+
+
+'''height = 128
+width = 160
+matrix = []
+for i in range(height):
+    matrix.append([])
+    for j in range(width):
+        matrix[i].append(random.randint(0, 255))
+
+matrix = np.array(matrix) '''
+
+'''matrix = np.array([[3, 23, 255, 6, 23, 87, 33, 54, 1, 8],
                    [32, 67, 255, 65, 7, 81, 87, 52, 79, 23],
                    [1, 23, 255, 6, 22, 87, 200, 54, 2, 8],
                    [31, 23, 255, 255, 23, 87, 33, 54, 1, 8],
                    [100, 23, 255, 6, 23, 87, 33, 54, 1, 8],
                    [150, 12, 57, 112, 34, 25, 56, 12, 23, 56],
                    [5, 4, 43, 255, 255, 255, 255, 255, 6, 2],
-                   [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]])
+                   [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]])'''
 
-plt.subplot(2, 2, 1)
+
+matrix = cv2.imread('test.jpg', 0)  # read image - black and white
+
+matrix = myImNoise(matrix, "salt")
+
+plt.subplot(1, 1, 1)
 plt.imshow(matrix, cmap='gray')
 
-kernel = np.array([[-1, 0, 1],
-                   [-1, 0, 1],
-                   [-1, 0, 1]])
+#kernel = np.array([[-1, 0, 1],
+#                   [-1, 0, 1],
+#                   [-1, 0, 1]])
 
+#plt.subplot(2, 2, 2)
+#plt.imshow(kernel, cmap='gray')
 
-plt.subplot(2, 2, 2)
-plt.imshow(kernel, cmap='gray')
+#out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
+#plt.subplot(2, 2, 4)
+#plt.imshow(out1, cmap='gray')
 
-out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
-plt.subplot(2, 2, 4)
-plt.imshow(out1, cmap='gray')
-
-out = myConv2(matrix, kernel, 'same')
-plt.subplot(2, 2, 3)
-plt.imshow(out, cmap='gray')
+#out = myConv2(matrix, kernel, 'same')
+#plt.subplot(2, 2, 3)
+#plt.imshow(out, cmap='gray')
 
 plt.show()
-
