@@ -9,6 +9,23 @@ import cv2
 def sizeAfterConv(height_width, kernelHeight_Width, padTop, padBot, stride):
     return ((height_width + padTop + padBot - kernelHeight_Width) // stride) + 1
 
+def paddImage(A, WindowHeight, WindowWidth):
+    imageHeight = len(A)
+    imageWidth = len(A[0])
+    paddingHeight = (WindowHeight // 2)
+    paddingWidth = (WindowWidth // 2)
+
+    # padding for convolution
+    paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=int)
+    im = 0
+    for i in range(paddingHeight, imageHeight + 1):
+        jm = 0
+        for j in range(paddingWidth, imageWidth + 1):
+            paddedImage[i][j] = A[im][jm]
+            jm += 1
+        im += 1
+
+    return paddedImage
 
 def myConv2(A, B, param):
     """
@@ -25,14 +42,7 @@ def myConv2(A, B, param):
     paddingWidth = (kernelWidth // 2)
 
     # padding for convolution
-    paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=int)
-    im = 0
-    for i in range(paddingHeight, imageHeight + 1):
-        jm = 0
-        for j in range(paddingWidth, imageWidth + 1):
-            paddedImage[i][j] = A[im][jm]
-            jm += 1
-        im += 1
+    paddedImage = paddImage(A, kernelHeight, kernelWidth)
 
     # define output size
     outputHeight = sizeAfterConv(imageHeight, kernelHeight, paddingHeight, paddingHeight, 1)
@@ -118,16 +128,26 @@ matrix = np.array(matrix) '''
                    [5, 4, 43, 255, 255, 255, 255, 255, 6, 2],
                    [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]])'''
 
+def findMedian(W):
+    windowHeight = len(W)
+    windowWidth = len(W[0])
+
+    w1D = np.reshape(W, (windowHeight * windowWidth, -1))
+    w1D = w1D.sort()
+    median = w1D[len(w1D)//2]
+
+    return median
 
 def myImFilter(A, param):
     if param == "mean":
         kernel = np.array([[1/9, 1/9, 1/9],
                            [1/9, 1/9, 1/9],
                            [1/9, 1/9, 1/9]])
+        return myConv2(A, kernel, "same")
     else:
-        kernel = np.array([[1 / 9, 1 / 9, 1 / 9],
-                           [1 / 9, 1 / 9, 1 / 9],
-                           [1 / 9, 1 / 9, 1 / 9]])
+        windowHight = 3
+        windowWindow = 3
+
 
 matrix = cv2.imread('test.jpg', 0)  # read image - black and white
 plt.subplot(2, 3, 1)
