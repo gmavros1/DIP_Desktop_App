@@ -35,23 +35,24 @@ def myConv2(A, B, param):
         im += 1
 
     # define output size
-    outputHeight = sizeAfterConv(imageHeight, kernelHeight, paddingHeight, paddingWidth, 1)
+    outputHeight = sizeAfterConv(imageHeight, kernelHeight, paddingHeight, paddingHeight, 1)
     outputWidth = sizeAfterConv(imageWidth, kernelWidth, paddingWidth, paddingWidth, 1)
 
     # flip kernel
-    B = np.fliplr(B)
-    B = np.flipud(B)
+    #B = np.fliplr(B)
+    #B = np.flipud(B)
 
     out = np.zeros(outputHeight * outputWidth, dtype=int)
 
     count = 0
+    convSum = 0
     for i in range(len(paddedImage) - kernelHeight + 1):
         for j in range(len(paddedImage[0]) - kernelWidth + 1):
-            convSum = 0
             for m in range(kernelHeight):
                 for n in range(kernelWidth):
                     convSum += paddedImage[m + i][n + j] * B[m][n]
             out[count] = convSum
+            convSum = 0
             count += 1
 
     out2D = np.reshape(out, (outputHeight, -1))
@@ -64,6 +65,19 @@ def myConv2(A, B, param):
     else:
         return out2D
 
+
+def gaussian(A):
+    noise = []
+    height = len(A)
+    width = len(A[0])
+    for i in range(height):
+        noise.append([])
+        for j in range(width):
+            noise[i].append(random.randint(-150, 150))
+
+    noise = np.array(noise)
+    A = A + noise
+    return A
 
 def saltAndPaper(A):
     for i in range(len(A)):
@@ -79,7 +93,10 @@ def saltAndPaper(A):
 
 def myImNoise(A, param):
 
-    return saltAndPaper(A)
+    if param == "gaussian":
+        return gaussian(A)
+    else:
+        return saltAndPaper(A)
 
 
 '''height = 128
@@ -102,26 +119,38 @@ matrix = np.array(matrix) '''
                    [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]])'''
 
 
+def myImFilter(A, param):
+    if param == "mean":
+        kernel = np.array([[1/9, 1/9, 1/9],
+                           [1/9, 1/9, 1/9],
+                           [1/9, 1/9, 1/9]])
+    else:
+        kernel = np.array([[1 / 9, 1 / 9, 1 / 9],
+                           [1 / 9, 1 / 9, 1 / 9],
+                           [1 / 9, 1 / 9, 1 / 9]])
+
 matrix = cv2.imread('test.jpg', 0)  # read image - black and white
-
-matrix = myImNoise(matrix, "salt")
-
-plt.subplot(1, 1, 1)
+plt.subplot(2, 3, 1)
 plt.imshow(matrix, cmap='gray')
 
-#kernel = np.array([[-1, 0, 1],
-#                   [-1, 0, 1],
-#                   [-1, 0, 1]])
+kernel = np.array([[-1, 0, 1],
+                   [-1, 0, 1],
+                   [-1, 0, 1]])
 
-#plt.subplot(2, 2, 2)
-#plt.imshow(kernel, cmap='gray')
+plt.subplot(2, 3, 3)
+plt.imshow(kernel, cmap='gray')
 
-#out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
-#plt.subplot(2, 2, 4)
-#plt.imshow(out1, cmap='gray')
+out = myConv2(matrix, kernel, 'same')
+plt.subplot(2, 3, 5)
+plt.imshow(out, cmap='gray')
 
-#out = myConv2(matrix, kernel, 'same')
-#plt.subplot(2, 2, 3)
-#plt.imshow(out, cmap='gray')
+out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
+plt.subplot(2, 3, 4)
+plt.imshow(out1, cmap='gray')
+
+
+matrix = myImNoise(matrix, "salt")
+plt.subplot(2, 3, 2)
+plt.imshow(matrix, cmap='gray')
 
 plt.show()
