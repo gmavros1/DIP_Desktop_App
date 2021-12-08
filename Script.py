@@ -145,9 +145,10 @@ def myImFilter(A, param):
                            [1/9, 1/9, 1/9]])
         return myConv2(A, kernel, "same")
     else:
-        windowHight = 3
+        madianImage = []
+        windowHeight = 3
         windowWindow = 3
-
+        # psd immage reshape etc....
 
 matrix = cv2.imread('test.jpg', 0)  # read image - black and white
 plt.subplot(2, 3, 1)
