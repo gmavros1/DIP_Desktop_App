@@ -1,10 +1,16 @@
 import random
-
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
 import cv2
 
+def cropOutput(out2D, imageHeight, imageWidth, outputHeight, outputWidth):
+    A = np.zeros((imageHeight, imageWidth), dtype=int)
+    for i in range(imageHeight):
+        for j in range(imageWidth):
+            A[i][j] = out2D[i + (outputHeight - imageHeight)][j + outputWidth - imageWidth]
+
+    return A
 
 def sizeAfterConv(height_width, kernelHeight_Width, padTop, padBot, stride):
     return ((height_width + padTop + padBot - kernelHeight_Width) // stride) + 1
@@ -49,8 +55,8 @@ def myConv2(A, B, param):
     outputWidth = sizeAfterConv(imageWidth, kernelWidth, paddingWidth, paddingWidth, 1)
 
     # flip kernel
-    #B = np.fliplr(B)
-    #B = np.flipud(B)
+    B = np.fliplr(B)
+    B = np.flipud(B)
 
     out = np.zeros(outputHeight * outputWidth, dtype=int)
 
@@ -68,10 +74,8 @@ def myConv2(A, B, param):
     out2D = np.reshape(out, (outputHeight, -1))
 
     if param == 'same':
-        for i in range(imageHeight):
-            for j in range(imageWidth):
-                A[i][j] = out2D[i + (outputHeight - imageHeight)][j + outputWidth - imageWidth]
-        return np.array(A)
+        outCropped = cropOutput(out2D, imageHeight, imageWidth, outputHeight, outputWidth)
+        return np.array(outCropped)
     else:
         return out2D
 
@@ -128,13 +132,12 @@ matrix = np.array(matrix) '''
                    [5, 4, 43, 255, 255, 255, 255, 255, 6, 2],
                    [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]])'''
 
-def findMedian(W):
-    windowHeight = len(W)
-    windowWidth = len(W[0])
+def findMedian(W, height, width):
 
-    w1D = np.reshape(W, (windowHeight * windowWidth, -1))
-    w1D = w1D.sort()
-    median = w1D[len(w1D)//2]
+    w1D = np.reshape(W, (height * width, -1))
+    np.sort(w1D)
+    #print(w1D)
+    median = w1D[(height * width)//2]
 
     return median
 
@@ -145,10 +148,29 @@ def myImFilter(A, param):
                            [1/9, 1/9, 1/9]])
         return myConv2(A, kernel, "same")
     else:
-        madianImage = []
         windowHeight = 3
-        windowWindow = 3
-        # psd immage reshape etc....
+        windowWidth = 3
+        paddingHeight = (windowHeight // 2)
+        paddingWidth = (windowWidth // 2)
+        outputHeight = sizeAfterConv(len(A), windowHeight, paddingHeight, paddingHeight, 1)
+        outputWidth = sizeAfterConv(len(A[0]), windowWidth, paddingWidth, paddingWidth, 1)
+        paddedIm = paddImage(A, windowHeight, windowWidth)
+        medianImage = np.zeros(outputHeight * outputWidth, dtype=int)  # 1D **** THE OUTPUT
+        count = 0
+        for i in range(len(paddedIm) - windowHeight + 1):
+            for j in range(len(paddedIm[0]) - windowWidth + 1):
+                temp = []
+                for m in range(windowHeight):
+                    for n in range(windowWidth):
+                        temp.append(paddedIm[m + i][n + j])
+                temp = np.array(temp)
+                medianImage[count] = findMedian(temp, windowHeight, windowWidth)
+                count += 1
+        out2D = np.reshape(medianImage, (outputHeight, -1))
+        return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
+
+
+
 
 matrix = cv2.imread('test.jpg', 0)  # read image - black and white
 plt.subplot(2, 3, 1)
@@ -161,17 +183,20 @@ kernel = np.array([[-1, 0, 1],
 plt.subplot(2, 3, 3)
 plt.imshow(kernel, cmap='gray')
 
-out = myConv2(matrix, kernel, 'same')
-plt.subplot(2, 3, 5)
-plt.imshow(out, cmap='gray')
+#out = myConv2(matrix, kernel, 'same')
+#plt.subplot(2, 3, 5)
+#plt.imshow(out, cmap='gray')
 
-out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
-plt.subplot(2, 3, 4)
-plt.imshow(out1, cmap='gray')
+#out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
+#plt.subplot(2, 3, 4)
+#plt.imshow(out1, cmap='gray')
 
 
 matrix = myImNoise(matrix, "salt")
 plt.subplot(2, 3, 2)
 plt.imshow(matrix, cmap='gray')
+
+plt.subplot(2, 3, 6)
+plt.imshow(myImFilter(matrix, "median"), cmap='gray')
 
 plt.show()
