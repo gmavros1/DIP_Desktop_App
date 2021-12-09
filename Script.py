@@ -24,7 +24,7 @@ def paddImage(A, WindowHeight, WindowWidth):
     paddingWidth = (WindowWidth // 2)
 
     # padding for convolution
-    paddedImage = np.zeros((imageHeight + 2 * (paddingHeight + 1), imageWidth + 2 * (paddingWidth + 1)), dtype=int)
+    paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=int)
     im = 0
     for i in range(paddingHeight, imageHeight + 1):
         jm = 0
