@@ -1,8 +1,8 @@
 import random
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import signal
 import cv2
+
 
 def cropOutput(out2D, imageHeight, imageWidth, outputHeight, outputWidth):
     A = np.zeros((imageHeight, imageWidth), dtype=int)
@@ -12,8 +12,10 @@ def cropOutput(out2D, imageHeight, imageWidth, outputHeight, outputWidth):
 
     return A
 
+
 def sizeAfterConv(height_width, kernelHeight_Width, padTop, padBot, stride):
     return ((height_width + padTop + padBot - kernelHeight_Width) // stride) + 1
+
 
 def paddImage(A, WindowHeight, WindowWidth):
     imageHeight = len(A)
@@ -22,7 +24,7 @@ def paddImage(A, WindowHeight, WindowWidth):
     paddingWidth = (WindowWidth // 2)
 
     # padding for convolution
-    paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=int)
+    paddedImage = np.zeros((imageHeight + 2 * (paddingHeight + 1), imageWidth + 2 * (paddingWidth + 1)), dtype=int)
     im = 0
     for i in range(paddingHeight, imageHeight + 1):
         jm = 0
@@ -32,6 +34,7 @@ def paddImage(A, WindowHeight, WindowWidth):
         im += 1
 
     return paddedImage
+
 
 def myConv2(A, B, param):
     """
@@ -66,8 +69,8 @@ def myConv2(A, B, param):
         for j in range(len(paddedImage[0]) - kernelWidth + 1):
             for m in range(kernelHeight):
                 for n in range(kernelWidth):
-                    convSum += paddedImage[m + i][n + j] * B[m][n]
-            out[count] = convSum
+                    convSum += float(paddedImage[m + i][n + j]) * B[m][n]
+            out[count] = int(convSum)
             convSum = 0
             count += 1
 
@@ -93,6 +96,7 @@ def gaussian(A):
     A = A + noise
     return A
 
+
 def saltAndPaper(A):
     for i in range(len(A)):
         for j in range(len(A[0])):
@@ -106,70 +110,53 @@ def saltAndPaper(A):
 
 
 def myImNoise(A, param):
-
     if param == "gaussian":
         return gaussian(A)
     else:
         return saltAndPaper(A)
 
 
-'''height = 128
-width = 160
-matrix = []
-for i in range(height):
-    matrix.append([])
-    for j in range(width):
-        matrix[i].append(random.randint(0, 255))
-
-matrix = np.array(matrix) '''
-
-'''matrix = np.array([[3, 23, 255, 6, 23, 87, 33, 54, 1, 8],
-                   [32, 67, 255, 65, 7, 81, 87, 52, 79, 23],
-                   [1, 23, 255, 6, 22, 87, 200, 54, 2, 8],
-                   [31, 23, 255, 255, 23, 87, 33, 54, 1, 8],
-                   [100, 23, 255, 6, 23, 87, 33, 54, 1, 8],
-                   [150, 12, 57, 112, 34, 25, 56, 12, 23, 56],
-                   [5, 4, 43, 255, 255, 255, 255, 255, 6, 2],
-                   [3, 23, 6, 6, 23, 87, 33, 54, 1, 8]])'''
-
-def findMedian(W, height, width):
-
-    w1D = np.reshape(W, (height * width, -1))
-    np.sort(w1D)
-    #print(w1D)
-    median = w1D[(height * width)//2]
+def findMedian(W):
+    # w1D = np.reshape(W, (height * width, -1))
+    w1Dsorted = np.sort(W)
+    w1Dunique = np.unique(w1Dsorted)
+    # print(w1Dunique)
+    median = w1Dunique[len(w1Dunique) // 2]
 
     return median
 
+
+def median(A):
+    windowHeight = 3
+    windowWidth = 3
+    paddingHeight = (windowHeight // 2)
+    paddingWidth = (windowWidth // 2)
+    outputHeight = sizeAfterConv(len(A), windowHeight, paddingHeight, paddingHeight, 1)
+    outputWidth = sizeAfterConv(len(A[0]), windowWidth, paddingWidth, paddingWidth, 1)
+    paddedIm = paddImage(A, windowHeight, windowWidth)
+    medianImage = np.zeros(outputHeight * outputWidth, dtype=int)  # 1D **** THE OUTPUT
+    count = 0
+    for i in range(len(paddedIm) - windowHeight + 1):
+        for j in range(len(paddedIm[0]) - windowWidth + 1):
+            temp = []
+            for m in range(windowHeight):
+                for n in range(windowWidth):
+                    temp.append(paddedIm[m + i][n + j])
+            temp = np.array(temp)
+            medianImage[count] = findMedian(temp)
+            count += 1
+    out2D = np.reshape(medianImage, (outputHeight, -1))
+    return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
+
+
 def myImFilter(A, param):
     if param == "mean":
-        kernel = np.array([[1/9, 1/9, 1/9],
-                           [1/9, 1/9, 1/9],
-                           [1/9, 1/9, 1/9]])
-        return myConv2(A, kernel, "same")
+        kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
+                           [1.0 / 9, 1.0 / 9, 1.0 / 9],
+                           [1.0 / 9, 1.0 / 9, 1.0 / 9]])
+        return myConv2(A, kernelF, "pad")
     else:
-        windowHeight = 3
-        windowWidth = 3
-        paddingHeight = (windowHeight // 2)
-        paddingWidth = (windowWidth // 2)
-        outputHeight = sizeAfterConv(len(A), windowHeight, paddingHeight, paddingHeight, 1)
-        outputWidth = sizeAfterConv(len(A[0]), windowWidth, paddingWidth, paddingWidth, 1)
-        paddedIm = paddImage(A, windowHeight, windowWidth)
-        medianImage = np.zeros(outputHeight * outputWidth, dtype=int)  # 1D **** THE OUTPUT
-        count = 0
-        for i in range(len(paddedIm) - windowHeight + 1):
-            for j in range(len(paddedIm[0]) - windowWidth + 1):
-                temp = []
-                for m in range(windowHeight):
-                    for n in range(windowWidth):
-                        temp.append(paddedIm[m + i][n + j])
-                temp = np.array(temp)
-                medianImage[count] = findMedian(temp, windowHeight, windowWidth)
-                count += 1
-        out2D = np.reshape(medianImage, (outputHeight, -1))
-        return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
-
-
+        return median(A)
 
 
 matrix = cv2.imread('test.jpg', 0)  # read image - black and white
@@ -183,20 +170,20 @@ kernel = np.array([[-1, 0, 1],
 plt.subplot(2, 3, 3)
 plt.imshow(kernel, cmap='gray')
 
-#out = myConv2(matrix, kernel, 'same')
-#plt.subplot(2, 3, 5)
-#plt.imshow(out, cmap='gray')
+# out = myConv2(matrix, kernel, 'same')
+# plt.subplot(2, 3, 5)
+# plt.imshow(out, cmap='gray')
 
-#out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
-#plt.subplot(2, 3, 4)
-#plt.imshow(out1, cmap='gray')
+# out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
+# plt.subplot(2, 3, 4)
+# plt.imshow(out1, cmap='gray')
 
 
-matrix = myImNoise(matrix, "salt")
+matrix = myImNoise(matrix, "gaussian")
 plt.subplot(2, 3, 2)
 plt.imshow(matrix, cmap='gray')
 
 plt.subplot(2, 3, 6)
-plt.imshow(myImFilter(matrix, "median"), cmap='gray')
+plt.imshow(myImFilter(matrix, "mean"), cmap='gray')
 
 plt.show()
