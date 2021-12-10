@@ -39,18 +39,16 @@ def selectImage():
 
 
 def frameImage_Options(img):
-    frame = Frame(root)
-    frame.pack(side=TOP)
-
-    canvas = Canvas(frame, width=300, height=300)
-    canvas.pack()
-    canvas.create_image(20, 20, anchor=NW, image=img)
+    #canvas = Canvas(root, width=500, height=500)
+    #canvas.pack()
+    #canvas.create_image(100, 100, anchor=NW, image=img)
 
     bottomFrame = Frame(root)
     bottomFrame.pack(side=BOTTOM)
 
     b1 = Button(bottomFrame, text='Apply Filter', command=selectImage)
     b1.pack(side=BOTTOM, padx=10, pady=10)
+
 
 
 root = initialize()

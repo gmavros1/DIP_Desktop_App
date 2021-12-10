@@ -142,13 +142,40 @@ def median(A):
     #return out2D
     return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
 
+def medianTOconv(A, k):
+    windowHeight = len(k)
+    windowWidth = len(k[0])
+    paddedIm = paddImage(A, windowHeight, windowWidth)
+    outputHeight = len(paddedIm) - windowHeight
+    outputWidth = len(paddedIm[0]) - windowWidth
+    # medianImage = np.zeros(outputHeight * outputWidth, dtype=int)  # 1D **** THE OUTPUT
+    medianImage = []
+    k1D = np.reshape(k, (1, -1))
+    for i in range(len(paddedIm) - windowHeight):
+        for j in range(len(paddedIm[0]) - windowWidth):
+            temp = []
+            for m in range(windowHeight):
+                for n in range(windowWidth):
+                    temp.append(paddedIm[m + i][n + j])
+            temp = np.array(temp)
+            mul = temp * k1D
+            medianImage.append(mul.sum())
+
+    medianImage = np.array(medianImage)
+    out2D = np.reshape(medianImage, (outputHeight, -1))  # maybe output height second parameter
+    #return out2D
+    return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
 
 def myImFilter(A, param):
     if param == "mean":
-        kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
-                            [1.0 / 9, 1.0 / 9, 1.0 / 9],
-                            [1.0 / 9, 1.0 / 9, 1.0 / 9]])
-        outMean = myConv2(A, kernelF, "pad")
+        height = 8
+        width = 8
+        kernelF = np.full((height, width), (1/(height*width)))
+        kernelF = np.reshape(kernelF, (height, -1))
+        #kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
+        #                    [1.0 / 9, 1.0 / 9, 1.0 / 9],
+        #                    [1.0 / 9, 1.0 / 9, 1.0 / 9]])
+        outMean = medianTOconv(A, kernelF)
         return outMean
     else:
         return median(A)
@@ -165,9 +192,14 @@ kernel = np.array([[-1, 0, 1],
 plt.subplot(2, 3, 3)
 plt.imshow(kernel, cmap='gray')
 
-out = myConv2(matrix, kernel, 'same')
-plt.subplot(2, 3, 5)
-plt.imshow(out, cmap='gray')
+#out = myConv2(matrix, kernel, 'same')
+#plt.subplot(2, 3, 5)
+#plt.imshow(out, cmap='gray')
+
+#out = medianTOconv(matrix, kernel)
+#plt.subplot(2, 3, 5)
+#plt.imshow(out, cmap='gray')
+
 
 # out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
 # plt.subplot(2, 3, 4)
@@ -179,6 +211,6 @@ plt.subplot(2, 3, 2)
 plt.imshow(matrix, cmap='gray')
 
 plt.subplot(2, 3, 6)
-plt.imshow(myImFilter(matrix, "median"), cmap='gray')
+plt.imshow(myImFilter(matrix, "mean"), cmap='gray')
 
 plt.show()
