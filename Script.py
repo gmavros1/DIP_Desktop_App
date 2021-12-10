@@ -168,8 +168,8 @@ def medianTOconv(A, k):
 
 def myImFilter(A, param):
     if param == "mean":
-        height = 8
-        width = 8
+        height = 16
+        width = 16
         kernelF = np.full((height, width), (1/(height*width)))
         kernelF = np.reshape(kernelF, (height, -1))
         #kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
@@ -206,7 +206,7 @@ plt.imshow(kernel, cmap='gray')
 # plt.imshow(out1, cmap='gray')
 
 
-matrix = myImNoise(matrix, "salt")
+matrix = myImNoise(matrix, "gaussian")
 plt.subplot(2, 3, 2)
 plt.imshow(matrix, cmap='gray')
 

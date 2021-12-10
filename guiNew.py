@@ -5,6 +5,17 @@ from PIL import Image
 from PIL import ImageTk
 import cv2
 
+class Data:
+    def __init__(self):
+        self.initialImage = None
+        self.filteredImage = None
+        self.noisyImage = None
+
+    def addImage(self, img):
+        """array style"""
+        self.initialImage = img
+
+
 
 def initialize():
     root = Tk()
@@ -19,7 +30,6 @@ def labels(rt):
 
 
 def buttons(rt):
-
     b2 = Button(rt, text='Select Image', command=selectImage)
     b2.place(relx=0.5, rely=0.5, anchor=CENTER)
 
@@ -30,26 +40,29 @@ def selectImage():
     path = filedialog.askopenfilename()
     if len(path) > 0:
         image = cv2.imread(path)
+        height = len(image)
+        width = len(image[0])
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(image)
+        image = image.resize((500, 500), Image.ANTIALIAS)
         image = ImageTk.PhotoImage(image)
 
-        b2.destroy()
-        frameImage_Options(image)
+        frameImage_Options(image, 500, 500)
 
 
-def frameImage_Options(img):
-    #canvas = Canvas(root, width=500, height=500)
-    #canvas.pack()
-    #canvas.create_image(100, 100, anchor=NW, image=img)
+
+def frameImage_Options(img, h, w):
+    canvas = Canvas(root, width=w, height=h)
+    canvas.create_image(10, 10, anchor=NW, image=img)
+    canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
 
     bottomFrame = Frame(root)
     bottomFrame.pack(side=BOTTOM)
 
-    b1 = Button(bottomFrame, text='Apply Filter', command=selectImage)
+    b1 = Button(bottomFrame, text='Apply Filter', command=None)
     b1.pack(side=BOTTOM, padx=10, pady=10)
 
-
+    canvas.mainloop()
 
 root = initialize()
 labels(root)
