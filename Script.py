@@ -20,15 +20,15 @@ def sizeAfterConv(height_width, kernelHeight_Width, padTop, padBot, stride):
 def paddImage(A, WindowHeight, WindowWidth):
     imageHeight = len(A)
     imageWidth = len(A[0])
-    paddingHeight = (WindowHeight // 2)
-    paddingWidth = (WindowWidth // 2)
+    paddingHeight = WindowHeight - 1
+    paddingWidth = WindowWidth - 1
 
     # padding for convolution
     paddedImage = np.zeros((imageHeight + 2 * paddingHeight, imageWidth + 2 * paddingWidth), dtype=int)
     im = 0
-    for i in range(paddingHeight, imageHeight + 1):
+    for i in range(paddingHeight, imageHeight + paddingHeight):
         jm = 0
-        for j in range(paddingWidth, imageWidth + 1):
+        for j in range(paddingWidth, imageWidth + paddingWidth):
             paddedImage[i][j] = A[im][jm]
             jm += 1
         im += 1
@@ -37,43 +37,37 @@ def paddImage(A, WindowHeight, WindowWidth):
 
 
 def myConv2(A, B, param):
-    """
-    A for image
-    B for kernel
-    param --> same : output same size as input
-    param --> pad : output size is padded
-    """
     imageHeight = len(A)
     imageWidth = len(A[0])
     kernelHeight = len(B)
     kernelWidth = len(B[0])
-    paddingHeight = (kernelHeight // 2)
-    paddingWidth = (kernelWidth // 2)
+    paddingHeight = kernelHeight - 1
+    paddingWidth = kernelWidth - 1
 
     # padding for convolution
     paddedImage = paddImage(A, kernelHeight, kernelWidth)
 
     # define output size
-    outputHeight = sizeAfterConv(imageHeight, kernelHeight, paddingHeight, paddingHeight, 1)
-    outputWidth = sizeAfterConv(imageWidth, kernelWidth, paddingWidth, paddingWidth, 1)
+    outputHeight = len(paddedImage) - kernelHeight
+    outputWidth = len(paddedImage[0]) - kernelWidth
 
     # flip kernel
     B = np.fliplr(B)
     B = np.flipud(B)
 
-    out = np.zeros(outputHeight * outputWidth, dtype=int)
+    #out = np.zeros(outputHeight * outputWidth, dtype=int)
+    out = []
 
-    count = 0
     convSum = 0
-    for i in range(len(paddedImage) - kernelHeight + 1):
-        for j in range(len(paddedImage[0]) - kernelWidth + 1):
+    for i in range(len(paddedImage) - kernelHeight):
+        for j in range(len(paddedImage[0]) - kernelWidth):
             for m in range(kernelHeight):
                 for n in range(kernelWidth):
                     convSum += float(paddedImage[m + i][n + j]) * B[m][n]
-            out[count] = int(convSum)
+            out.append(int(convSum))
             convSum = 0
-            count += 1
 
+    out = np.array(out)
     out2D = np.reshape(out, (outputHeight, -1))
 
     if param == 'same':
@@ -127,34 +121,35 @@ def findMedian(W):
 
 
 def median(A):
-    windowHeight = 3
-    windowWidth = 3
-    paddingHeight = (windowHeight // 2)
-    paddingWidth = (windowWidth // 2)
-    outputHeight = sizeAfterConv(len(A), windowHeight, paddingHeight, paddingHeight, 1)
-    outputWidth = sizeAfterConv(len(A[0]), windowWidth, paddingWidth, paddingWidth, 1)
+    windowHeight = 5
+    windowWidth = 5
     paddedIm = paddImage(A, windowHeight, windowWidth)
-    medianImage = np.zeros(outputHeight * outputWidth, dtype=int)  # 1D **** THE OUTPUT
-    count = 0
-    for i in range(len(paddedIm) - windowHeight + 1):
-        for j in range(len(paddedIm[0]) - windowWidth + 1):
+    outputHeight = len(paddedIm) - windowHeight
+    outputWidth = len(paddedIm[0]) - windowWidth
+    # medianImage = np.zeros(outputHeight * outputWidth, dtype=int)  # 1D **** THE OUTPUT
+    medianImage = []
+    for i in range(len(paddedIm) - windowHeight):
+        for j in range(len(paddedIm[0]) - windowWidth):
             temp = []
             for m in range(windowHeight):
                 for n in range(windowWidth):
                     temp.append(paddedIm[m + i][n + j])
             temp = np.array(temp)
-            medianImage[count] = findMedian(temp)
-            count += 1
-    out2D = np.reshape(medianImage, (outputHeight, -1))
+            medianImage.append(findMedian(temp))
+
+    medianImage = np.array(medianImage)
+    out2D = np.reshape(medianImage, (outputHeight, -1))  # maybe output height second parameter
+    #return out2D
     return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
 
 
 def myImFilter(A, param):
     if param == "mean":
         kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
-                           [1.0 / 9, 1.0 / 9, 1.0 / 9],
-                           [1.0 / 9, 1.0 / 9, 1.0 / 9]])
-        return myConv2(A, kernelF, "pad")
+                            [1.0 / 9, 1.0 / 9, 1.0 / 9],
+                            [1.0 / 9, 1.0 / 9, 1.0 / 9]])
+        outMean = myConv2(A, kernelF, "pad")
+        return outMean
     else:
         return median(A)
 
@@ -170,9 +165,9 @@ kernel = np.array([[-1, 0, 1],
 plt.subplot(2, 3, 3)
 plt.imshow(kernel, cmap='gray')
 
-# out = myConv2(matrix, kernel, 'same')
-# plt.subplot(2, 3, 5)
-# plt.imshow(out, cmap='gray')
+out = myConv2(matrix, kernel, 'same')
+plt.subplot(2, 3, 5)
+plt.imshow(out, cmap='gray')
 
 # out1 = signal.convolve2d(matrix, kernel, boundary='symm', mode='same')
 # plt.subplot(2, 3, 4)
