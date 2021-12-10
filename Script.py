@@ -179,11 +179,11 @@ plt.imshow(kernel, cmap='gray')
 # plt.imshow(out1, cmap='gray')
 
 
-matrix = myImNoise(matrix, "gaussian")
+matrix = myImNoise(matrix, "salt")
 plt.subplot(2, 3, 2)
 plt.imshow(matrix, cmap='gray')
 
 plt.subplot(2, 3, 6)
-plt.imshow(myImFilter(matrix, "mean"), cmap='gray')
+plt.imshow(myImFilter(matrix, "median"), cmap='gray')
 
 plt.show()
