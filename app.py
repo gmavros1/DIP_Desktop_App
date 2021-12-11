@@ -1,6 +1,6 @@
 import random
 import numpy as np
-
+from sklearn import preprocessing
 import matplotlib.pyplot as plt
 import cv2
 
@@ -9,10 +9,16 @@ class App:
     def __init__(self):
         self.initialImage = None
         self.processedImage = None
+        self.imageHeight = None
+        self.imageWidth = None
 
     def addImage(self, img):
         """array style"""
         self.initialImage = img
+        self.processedImage = img
+        self.imageHeight = len(self.initialImage)
+        self.imageWidth = len(self.initialImage[0])
+
 
     @staticmethod
     def cropOutput(out2D, imageHeight, imageWidth, outputHeight, outputWidth):
@@ -67,16 +73,19 @@ class App:
         return self.cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
 
     def gaussian(self, A):
-        noise = []
         height = len(A)
         width = len(A[0])
         for i in range(height):
-            noise.append([])
             for j in range(width):
-                noise[i].append(random.randint(-150, 150))
+                A[i][j] += random.randint(-50, 50)
 
-        noise = np.array(noise)
-        A = A + noise
+        #normalized = preprocessing.normalize(A)
+
+        a1D = np.resize(A, (1, -1))
+        a1D += abs(np.min(a1D))
+        normalized = (255*float(a1D - np.min(a1D))/np.ptp(a1D)).astype(int)
+        A = np.resize(normalized, (height, -1))
+
         return A
 
     def saltAndPaper(self, A):
@@ -91,7 +100,8 @@ class App:
         return A
 
     def myImNoise(self, A, param):
-        B = A.copy()
+        A = np.array(A)
+        B = np.array(A.copy())
         if param == "gaussian":
             self.processedImage = self.gaussian(B)
         else:
@@ -144,15 +154,3 @@ class App:
             self.processedImage = self.median(A)
 
 
-app = App()
-matrix = cv2.imread('test.jpg', 0)  # read image - black and white
-app.initialImage = matrix
-app.processedImage = app.initialImage
-app.myImNoise(app.processedImage, "salt")
-
-plt.subplot(2, 1, 1)
-plt.imshow(app.initialImage, cmap='gray')
-
-plt.subplot(2, 1, 2)
-plt.imshow(app.processedImage, cmap='gray')
-plt.show()

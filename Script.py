@@ -35,48 +35,6 @@ def paddImage(A, WindowHeight, WindowWidth):
 
     return paddedImage
 
-
-def myConv2(A, B, param):
-    imageHeight = len(A)
-    imageWidth = len(A[0])
-    kernelHeight = len(B)
-    kernelWidth = len(B[0])
-    paddingHeight = kernelHeight - 1
-    paddingWidth = kernelWidth - 1
-
-    # padding for convolution
-    paddedImage = paddImage(A, kernelHeight, kernelWidth)
-
-    # define output size
-    outputHeight = len(paddedImage) - kernelHeight
-    outputWidth = len(paddedImage[0]) - kernelWidth
-
-    # flip kernel
-    B = np.fliplr(B)
-    B = np.flipud(B)
-
-    #out = np.zeros(outputHeight * outputWidth, dtype=int)
-    out = []
-
-    convSum = 0
-    for i in range(len(paddedImage) - kernelHeight):
-        for j in range(len(paddedImage[0]) - kernelWidth):
-            for m in range(kernelHeight):
-                for n in range(kernelWidth):
-                    convSum += float(paddedImage[m + i][n + j]) * B[m][n]
-            out.append(int(convSum))
-            convSum = 0
-
-    out = np.array(out)
-    out2D = np.reshape(out, (outputHeight, -1))
-
-    if param == 'same':
-        outCropped = cropOutput(out2D, imageHeight, imageWidth, outputHeight, outputWidth)
-        return np.array(outCropped)
-    else:
-        return out2D
-
-
 def gaussian(A):
     noise = []
     height = len(A)
@@ -142,7 +100,7 @@ def median(A):
     #return out2D
     return cropOutput(out2D, len(A), len(A[0]), outputHeight, outputWidth)
 
-def medianTOconv(A, k):
+def myConv2(A, k):
     windowHeight = len(k)
     windowWidth = len(k[0])
     paddedIm = paddImage(A, windowHeight, windowWidth)
@@ -175,7 +133,7 @@ def myImFilter(A, param):
         #kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
         #                    [1.0 / 9, 1.0 / 9, 1.0 / 9],
         #                    [1.0 / 9, 1.0 / 9, 1.0 / 9]])
-        outMean = medianTOconv(A, kernelF)
+        outMean = myConv2(A, kernelF)
         return outMean
     else:
         return median(A)
