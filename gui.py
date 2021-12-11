@@ -4,7 +4,7 @@ from tkinter import filedialog
 from PIL import Image
 from PIL import ImageTk
 import cv2
-from app import Data
+from app import App
 
 
 class Gui:
@@ -15,8 +15,9 @@ class Gui:
         self.root.title("DIP app")
         windowSize = str(self.windowWidth) + "x" + str(self.windowHeight)
         self.root.geometry(windowSize)
-        # App data
-        self.data = Data()
+        # App storing and data processing
+        self.data = App()
+
         # Buttons
         self.btn1 = None  # Select Image
         self.btn2 = None  # Apply Filter
