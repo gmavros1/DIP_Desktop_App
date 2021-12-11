@@ -1,8 +1,7 @@
 import random
 import numpy as np
 
-
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 import cv2
 
 
@@ -43,7 +42,7 @@ class App:
 
         return paddedImage
 
-    def medianTOconv(self, A, k):
+    def myConv2(self, A, k):
         windowHeight = len(k)
         windowWidth = len(k[0])
         paddedIm = self.paddImage(A, windowHeight, windowWidth)
@@ -78,7 +77,7 @@ class App:
 
         noise = np.array(noise)
         A = A + noise
-        self.processedImage = A
+        return A
 
     def saltAndPaper(self, A):
         for i in range(len(A)):
@@ -89,15 +88,17 @@ class App:
                     else:
                         A[i][j] = 254
 
-        self.processedImage = A
+        return A
 
     def myImNoise(self, A, param):
+        B = A.copy()
         if param == "gaussian":
-            return self.gaussian(A)
+            self.processedImage = self.gaussian(B)
         else:
-            return self.saltAndPaper(A)
+            self.processedImage = self.saltAndPaper(B)
 
-    def findMedian(self, W):
+    @staticmethod
+    def findMedian(W):
         # w1D = np.reshape(W, (height * width, -1))
         w1Dsorted = np.sort(W)
         w1Dunique = np.unique(w1Dsorted)
@@ -137,10 +138,21 @@ class App:
             # kernelF = np.array([[1.0 / 9, 1.0 / 9, 1.0 / 9],
             #                    [1.0 / 9, 1.0 / 9, 1.0 / 9],
             #                    [1.0 / 9, 1.0 / 9, 1.0 / 9]])
-            outMean = self.medianTOconv(A, kernelF)
+            outMean = self.myConv2(A, kernelF)
             self.processedImage = outMean
         else:
             self.processedImage = self.median(A)
 
 
 app = App()
+matrix = cv2.imread('test.jpg', 0)  # read image - black and white
+app.initialImage = matrix
+app.processedImage = app.initialImage
+app.myImNoise(app.processedImage, "salt")
+
+plt.subplot(2, 1, 1)
+plt.imshow(app.initialImage, cmap='gray')
+
+plt.subplot(2, 1, 2)
+plt.imshow(app.processedImage, cmap='gray')
+plt.show()
