@@ -21,6 +21,7 @@ class Gui:
         self.btn1 = None  # Select Image
         self.btn2 = None  # Apply Filter
         self.btn3 = None  # Add Noise
+        self.otherButtonFrame = None
 
         # Canvas for image display
         self.canvas = None
@@ -42,11 +43,12 @@ class Gui:
         self.btn1.place(relx=0.5, rely=0.5, anchor=CENTER)
 
     def otherButtons(self):
-        self.btn2 = Button(self.root, text='Apply Filter', command=None)
-        #self.btn2.pack(side=BOTTOM, padx=10, pady=10)
+        self.otherButtonFrame = Frame(self.root)
+        self.otherButtonFrame.pack(side=BOTTOM)
 
-        self.btn3 = Button(self.root, text='Add Noise', command=None)
-        #self.btn3.pack(side=BOTTOM, padx=10, pady=10)
+        self.btn2 = Button(self.otherButtonFrame, text='Apply Filter', command=None)
+
+        self.btn3 = Button(self.otherButtonFrame, text='Add Noise', command=None)
 
         self.btn2.grid(row=0, column=0, sticky=W, pady=2)
         self.btn3.grid(row=0, column=1, sticky=W, pady=2)
