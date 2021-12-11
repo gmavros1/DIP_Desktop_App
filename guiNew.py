@@ -25,8 +25,8 @@ def initialize():
 
 
 def labels(rt):
-    w = Label(rt, text='Apply filters')
-    # w.pack()
+    w = Label(rt, text='Apply filters', font=("Arial", 25))
+    w.pack()
 
 
 def buttons(rt):
@@ -40,14 +40,18 @@ def selectImage():
     path = filedialog.askopenfilename()
     if len(path) > 0:
         image = cv2.imread(path)
+        # computations for resizing
         height = len(image)
         width = len(image[0])
+        a = height / 700
+        width = int(width / a)
+        height = 700
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
         image = Image.fromarray(image)
-        image = image.resize((500, 500), Image.ANTIALIAS)
+        image = image.resize((width, height), Image.ANTIALIAS)
         image = ImageTk.PhotoImage(image)
 
-        frameImage_Options(image, 500, 500)
+        frameImage_Options(image, height, width)
 
 
 
