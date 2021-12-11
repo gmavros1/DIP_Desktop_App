@@ -5,16 +5,6 @@ from PIL import Image
 from PIL import ImageTk
 import cv2
 
-class Data:
-    def __init__(self):
-        self.initialImage = None
-        self.filteredImage = None
-        self.noisyImage = None
-
-    def addImage(self, img):
-        """array style"""
-        self.initialImage = img
-
 
 
 def initialize():
