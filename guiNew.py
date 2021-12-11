@@ -50,11 +50,7 @@ def frameImage_Options(img, h, w):
     canvas.create_image(10, 10, anchor=NW, image=img)
     canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
 
-    bottomFrame = Frame(root)
-    bottomFrame.pack(side=BOTTOM)
 
-    b1 = Button(bottomFrame, text='Apply Filter', command=None)
-    b1.pack(side=BOTTOM, padx=10, pady=10)
 
     canvas.mainloop()
 

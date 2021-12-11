@@ -1,8 +1,7 @@
-class App:
+class Data:
     def __init__(self):
         self.initialImage = None
-        self.filteredImage = None
-        self.noisyImage = None
+        self.processedImage = None
 
     def addImage(self, img):
         """array style"""

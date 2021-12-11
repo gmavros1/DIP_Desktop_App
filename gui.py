@@ -1,62 +1,76 @@
-# import the necessary packages
 from tkinter import *
+from tkinter.ttk import *
 from tkinter import filedialog
 from PIL import Image
 from PIL import ImageTk
 import cv2
+from app import Data
 
 
-def select_image():
-    # grab a reference to the image panels
-    global panelA, panelB
-    # open a file chooser dialog and allow the user to select an input
-    # image
-    path = filedialog.askopenfilename()
+class Gui:
+    def __init__(self):
+        self.windowWidth = 1280
+        self.windowHeight = 820
+        self.root = Tk()
+        self.root.title("DIP app")
+        windowSize = str(self.windowWidth) + "x" + str(self.windowHeight)
+        self.root.geometry(windowSize)
+        # App data
+        self.data = Data()
+        # Buttons
+        self.btn1 = None  # Select Image
+        self.btn2 = None  # Apply Filter
+        self.btn3 = None  # Add Noise
 
-    # ensure a file path was selected
-    if len(path) > 0:
-        # load the image from disk, convert it to grayscale, and detect
-        # edges in it
-        image = cv2.imread(path)
-        gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-        edged = cv2.Canny(gray, 50, 100)
-        # OpenCV represents images in BGR order; however PIL represents
-        # images in RGB order, so we need to swap the channels
+        # Canvas for image display
+        self.canvas = None
+
+        # Run
+        self.run()
+
+    def selectImage(self):  # Image --> openCV style
+        path = filedialog.askopenfilename()
+        if len(path) > 0:
+            image = cv2.imread(path)
+            self.data.addImage(image)
+            self.btn1.destroy()
+            self.otherButtons()
+            self.displayImage(self.data.initialImage)
+
+    def selectImageButton(self):
+        self.btn1 = Button(self.root, text='Select Image', command=self.selectImage)
+        self.btn1.place(relx=0.5, rely=0.5, anchor=CENTER)
+
+    def otherButtons(self):
+        self.btn2 = Button(self.root, text='Apply Filter', command=None)
+        #self.btn2.pack(side=BOTTOM, padx=10, pady=10)
+
+        self.btn3 = Button(self.root, text='Add Noise', command=None)
+        #self.btn3.pack(side=BOTTOM, padx=10, pady=10)
+
+        self.btn2.grid(row=0, column=0, sticky=W, pady=2)
+        self.btn3.grid(row=0, column=1, sticky=W, pady=2)
+
+    def displayImage(self, img):
+        image = img
+        height = len(image)
+        width = len(image[0])
+        a = height / 700
+        width = int(width / a)
+        height = 700
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # convert the images to PIL format...
         image = Image.fromarray(image)
-        edged = Image.fromarray(edged)
-        # ...and then to ImageTk format
+        image = image.resize((width, height), Image.ANTIALIAS)
         image = ImageTk.PhotoImage(image)
-        edged = ImageTk.PhotoImage(edged)
 
-        # if the panels are None, initialize them
-        if panelA is None or panelB is None:
-            # the first panel will store our original image
-            panelA = Label(image=image)
-            panelA.image = image
-            panelA.pack(side="left", padx=10, pady=10)
-            # while the second panel will store the edge map
-            panelB = Label(image=edged)
-            panelB.image = edged
-            panelB.pack(side="right", padx=10, pady=10)
-        # otherwise, update the image panels
-        else:
-            # update the pannels
-            panelA.configure(image=image)
-            panelB.configure(image=edged)
-            panelA.image = image
-            panelB.image = edged
+        self.canvas = Canvas(self.root, width=width, height=height)
+        self.canvas.create_image(10, 10, anchor=NW, image=image)
+        self.canvas.place(relx=0.5, rely=0.5, anchor=CENTER)
+        self.canvas.mainloop()
+
+    def run(self):
+        self.selectImageButton()
+        self.root.mainloop()
 
 
-# initialize the window toolkit along with the two image panels
-root = Tk()
-panelA = None
-panelB = None
-# create a button, then when pressed, will trigger a file chooser
-# dialog and allow the user to select an input image; then add the
-# button the GUI
-btn = Button(root, text="Select an image", command=select_image)
-btn.pack(side="bottom", fill="both", expand="yes", padx="10", pady="10")
-# kick off the GUI
-root.mainloop()
+gui = Gui()
