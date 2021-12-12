@@ -81,10 +81,14 @@ class App:
 
         #normalized = preprocessing.normalize(A)
 
-        a1D = np.resize(A, (1, -1))
-        a1D += abs(np.min(a1D))
-        normalized = (255*float(a1D - np.min(a1D))/np.ptp(a1D)).astype(int)
-        A = np.resize(normalized, (height, -1))
+        #min = np.min(A)
+        #max = np.max(A)
+        #A += abs(np.min(A))
+
+        #for i in range(height):
+        #    for j in range(width):
+        #        A[i][j] = ((A[i][j] - min) / (max - min)) * 255.0
+        #        A[i][j] = int(A[i][j])
 
         return A
 
